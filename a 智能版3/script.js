@@ -7,7 +7,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const player1ScoreBox = document.getElementById('player1-score');
     const player2ScoreBox = document.getElementById('player2-score');
     const gameOverMessage = document.getElementById('game-over-message'); 
-    const winnerText = document.getElementById('winnerText');
+    
+    // **** (BugFix) 修正 ID 大小寫 ****
+    // (原：'winnerText')
+    const winnerText = document.getElementById('winner-text'); 
+    // **** (BugFix) 結束 ****
+    
     const confirmLineButton = document.getElementById('confirm-line-button');
     const cancelLineButton = document.getElementById('cancel-line-button');
     const actionBar = document.getElementById('action-bar');
@@ -679,7 +684,13 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             winnerMessage = "平手！";
         }
-        winnerText.textContent = winnerMessage;
+        
+        // **** (BugFix) 確保 winnerText 物件存在才設定 ****
+        if (winnerText) {
+            winnerText.textContent = winnerMessage;
+        } else {
+            console.error("找不到 'winner-text' 元素！");
+        }
         
         // 紀錄遊戲總結
         gameHistoryLog.summary = {
@@ -708,7 +719,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const playerName = (currentPlayer === 2) ? "AI 2 (Max)" : "AI 1 (Min)";
             logAI(`--- ${playerName} 已無棋可走，遊戲結束 ---`);
             if (aiLogContainer) aiLogContainer.classList.remove('hidden');
-            endGame();
+            endGame(); // (*** 這裡會呼叫 endGame，並正確顯示勝利者 ***)
             return;
         }
 
@@ -759,7 +770,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         } else {
             logAI(`--- [主線程] AI 未傳回走法，遊戲結束 ---`);
-            endGame();
+            endGame(); // (*** 這裡也會呼叫 endGame ***)
         }
     }
     
@@ -856,8 +867,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
     
-    // **** (新功能) 輔助函式：安全地處理 CSV 字串 ****
-    // (如果字串中包含逗號、引號或換行，就必須用引號包起來，並將內部的引號加倍)
+    // (輔助函式：安全地處理 CSV 字串)
     function escapeCSV(str) {
         if (str === null || str === undefined) return '';
         let result = String(str);
@@ -870,11 +880,10 @@ document.addEventListener('DOMContentLoaded', () => {
             return `"${result}"`;
         }
         
-        // 否則，原樣返回 (或者也包起來以求安全，這裡選擇不包)
         return result;
     }
 
-    // **** (新功能) 匯出遊戲紀錄 (改為 CSV/Excel) ****
+    // 匯出遊戲紀錄 (CSV/Excel)
     function exportGameLog() {
         if (!gameHistoryLog.turns || gameHistoryLog.turns.length === 0) {
             alert("尚未有任何遊戲紀錄。");
@@ -912,9 +921,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 entry.player,
                 escapeCSV(entry.playerType),
                 escapeCSV(entry.move),
-                escapeCSV(segmentsStr), // 對扁平化後的字串進行 CSV 安全處理
+                escapeCSV(segmentsStr), 
                 entry.scoreGained,
-                escapeCSV(trianglesStr), // 同上
+                escapeCSV(trianglesStr), 
                 entry.newScoreP1,
                 entry.newScoreP2
             ];
